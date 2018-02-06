@@ -1,7 +1,7 @@
 //
 //  ------------------------------------------------------------------------
 //
-//  Copyright 2017 Dan Lindholm
+//  Copyright 2016 Dan Lindholm
 //
 //  Licensed under the Apache License, Version 2.0 (the "License");
 //  you may not use this file except in compliance with the License.
@@ -22,6 +22,12 @@
 
 import Foundation
 
+extension UIImage {
+    public func extractEmojiAt(coords: CGRect) -> UIImage {
+        return UIImage(cgImage: self.cgImage!.cropping(to: coords)!)
+    }
+}
+
 extension UITextView {
     public var emojicaText: NSAttributedString {
         get { return self.attributedText }
@@ -37,20 +43,20 @@ extension UILabel {
 }
 
 extension UITextInput {
-    
+
     /// Returns the cursor offset from the end of the document.
     internal func getCursor() -> Int? {
         guard let range = self.selectedTextRange else { return nil }
         return self.offset(from: self.endOfDocument, to: range.end)
     }
-    
+
     /// Sets the cursor to the end position offset by the given argument.
     /// - parameter offset:     The value to offset the cursor with.
     internal func setCursor(to offset: Int) {
         guard let position = self.position(from: self.endOfDocument, offset: offset) else { return }
         self.selectedTextRange = self.textRange(from: position, to: position)
     }
-    
+
 }
 
 extension String {
@@ -79,7 +85,7 @@ extension NSTextAttachment {
 }
 
 extension UnicodeScalar {
-    
+
     var isObjectReplacementCharacter: Bool { return 0xfffc == self.value }
     var isReplacementCharacter: Bool { return 0xfffd == self.value }
     var isZeroWidthJoiner: Bool { return 0x200d == self.value }
@@ -99,39 +105,40 @@ extension UnicodeScalar {
         guard
             !self.isObjectReplacementCharacter,
             !self.isReplacementCharacter
-        else { return false }
-        
+            else { return false }
+
         let codePoint = self.value
-        
+
         switch codePoint {
         case Block.miscellaneousSymbols.range:
             let block = Block.miscellaneousSymbols
             return !block.nonEmoji.contains(codePoint)
-            
+
         case Block.dingbats.range:
             let block = Block.dingbats
             return !block.nonEmoji.contains(codePoint)
-            
+
         case Block.miscellaneousSymbolsAndPictographs.range:
             let block = Block.miscellaneousSymbolsAndPictographs
             return !block.nonEmoji.contains(codePoint)
-            
+
         case Block.emoticons.range:
             return true
-            
+
         case Block.transportAndMapSymbols.range:
             let block = Block.transportAndMapSymbols
             return !block.nonEmoji.contains(codePoint) && !block.unassigned.contains(codePoint)
-            
+
         case Block.supplementalSymbolsAndPictographs.range:
             let block = Block.supplementalSymbolsAndPictographs
             return !block.nonEmoji.contains(codePoint) && !block.unassigned.contains(codePoint)
-            
+
         case let value where Unicode.additionalCharacters.contains(value):
             return true
-            
+
         default:
             return false
         }
     }
 }
+
